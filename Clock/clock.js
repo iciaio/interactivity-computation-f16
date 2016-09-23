@@ -10,35 +10,46 @@ var M_col;
 var H_col;
 var S_col;
 
+var H; 
+var M; 
+var S;
+var hourWithFraction;
+var mils;
+var secondsWithFraction;
+var minuteWithFraction;
+
 
 //--------------------------
 function setup() {
+  colorMode(HSB,100);
   createCanvas(canW, canH);
   millisRolloverTime = 0;
+  time();
   genCircleColors();
 }
 
-//--------------------------
-function draw() {
-  //golan's code
-  background(255);
-
-  var H = hour();
-  var M = minute();
-  var S = second();
+function time(){
+  H = hour();
+  M = minute();
+  S = second();
 
   if (prevSec != S) {
     millisRolloverTime = millis();
   }
   prevSec = S;
-  var mils = floor(millis() - millisRolloverTime);
-  var secondsWithFraction   = S + (mils / 1000.0);
-  var hourWithFraction = H + (M/60.0) + (S/3600.0);
-  var minuteWithFraction = M + (S/60.0);
-  // end golan's code
+  mils = floor(millis() - millisRolloverTime);
+  secondsWithFraction   = S + (mils / 1000.0);
+  hourWithFraction = H + (M/60.0) + (S/3600.0);
+  minuteWithFraction = M + (S/60.0);
+}
+
+//--------------------------
+function draw() {
+  time();
+  background(255);
 
   //big outer circle, rad = width
-  fill(O_col.r, O_col.g, O_col.b);
+  fill(O_col.h, O_col.s, O_col.b);
   noStroke();
   ellipse(canW/2,canH/2,w,h);
 
@@ -52,7 +63,7 @@ function draw() {
   var D_y = sin(D_angle) * D_pathRad;
   var D_x = cos(D_angle) * D_pathRad;
 
-  fill(D_col.r, D_col.g, D_col.b);
+  fill(D_col.h, D_col.s, D_col.b);
   noStroke();
   ellipse((canW/2)+D_x, (canH/2)+D_y, D_diam, D_diam);
   
@@ -66,7 +77,7 @@ function draw() {
   var H_y = D_y + (sin(H_angle) * H_pathRad);
   var H_x = D_x + (cos(H_angle) * H_pathRad);
 
-  fill(H_col.r, H_col.g, H_col.b);
+  fill(H_col.h, H_col.s, H_col.b);
   noStroke();
   ellipse(canW/2 + H_x, canH/2 + H_y, H_diam, H_diam);
   
@@ -80,7 +91,7 @@ function draw() {
   var M_y = H_y + (sin(M_angle) * M_pathRad);
   var M_x = H_x + (cos(M_angle) * M_pathRad);
 
-  fill(M_col.r, M_col.g, M_col.b);
+  fill(M_col.h, M_col.s, M_col.b);
   noStroke();
   ellipse(canW/2 + M_x, canH/2 + M_y, M_diam, M_diam);
 
@@ -94,7 +105,7 @@ function draw() {
   var S_y = M_y + (sin(S_angle) * S_pathRad);
   var S_x = M_x + (cos(S_angle) * S_pathRad);
 
-  fill(S_col.r, S_col.g, S_col.b);
+  fill(S_col.h, S_col.s, S_col.b);
   noStroke();
   ellipse(canW/2 + S_x, canH/2 + S_y, S_diam, S_diam);
 
@@ -107,12 +118,26 @@ function draw() {
 }
 
 function genCircleColors(){
-  O_col = {r: random(0,255), g: random(0,255), b: random(0,255)};
-  D_col = {r: random(0,255), g: random(0,255), b: random(0,255)};
-  H_col = {r: random(0,255), g: random(0,255), b: random(0,255)};
-  M_col = {r: random(0,255), g: random(0,255), b: random(0,255)};
-  S_col = {r: random(0,255), g: random(0,255), b: random(0,255)};
-}
+    
+  var hourWF = hourWithFraction;
+  var H = random(0,100);
+  if (hourWF > 12){
+    hourWF = (hourWF - 2*(hourWF - 12));
+  }
+  var S = map(hourWF, 0, 12, 50, 90); //6am-12pm pastel to saturated, 12pm-6pm saturated to less bright
+  var B = map(hourWF, 0, 12, 30, 90); 
+    
+  console.log(H,S,B);
+  // O_col = {h: (H+30)%100, s: S, b: B};
+  // D_col = {h: (H+10)%100, s: S, b: B};
+  // H_col = {h: (H+70)%100, s: S, b: B};
+  // M_col = {h: (H+50)%100, s: S, b: B};
+  // S_col = {h: (H-10)%100, s: S, b: B};
+  O_col = {h: (H+30)%100, s: S, b: B};
+  D_col = {h: (H+10)%100, s: S, b: B};
+  H_col = {h: (H+70)%100, s: S, b: B};
+  M_col = {h: (H+50)%100, s: S, b: B};
+  S_col = {h: (H-10)%100, s: S, b: B};}
 
 function mousePressed(){
   genCircleColors()

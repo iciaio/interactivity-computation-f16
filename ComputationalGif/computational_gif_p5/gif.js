@@ -13,6 +13,8 @@ var bRecording;
 var bIAmRunningThisOnMyLaptop = false;
 var size = 500;
 
+var circle = {x: 250, y: 0, rad: 50}; //x, y, rad
+var lineHeight = 150;
 //===================================================
 function setup() {
   createCanvas(500, 500);
@@ -34,9 +36,9 @@ function draw() {
   // Compute a percentage (0...1) representing where we are in the loop.
   var percentCompleteFraction = 0;
   if (bRecording) {
-    percentCompleteFraction = float(nElapsedFrames) / float(nFramesInLoop);
+    percentCompleteFraction = (nElapsedFrames) / (nFramesInLoop);
   } else {
-    percentCompleteFraction = float(frameCount % nFramesInLoop) / float(nFramesInLoop);
+    percentCompleteFraction = (frameCount % nFramesInLoop) / (nFramesInLoop);
   }
 
   // Render the design, based on that percentage. 
@@ -66,33 +68,79 @@ function renderMyDesign(percent) {
 
   //----------------------
   // here, I set the background and some other graphical properties
+
+  // percent = 0.837;
+  // percent = 0.852;
   background(0);
   smooth();
   stroke(255);
+  strokeWeight(3);
   noFill();
-  strokeWeight(1);
 
-  var dist = 1;
-  for (var i = 500/2; i < 500; i+=dist){
-    line(0, i, 500, i);
-    dist*=1.2;
+  line(0, lineHeight, 500, lineHeight);
+  var y = map(percent, 0, 200, 0, 500);
+  var ysquare = (y * y * y * y * y * y * y * y)/3 + 100;
+  // var y = map(percent, 0, 3, 200, 500);
+  // var ysquare = y;
+  circle.y = ysquare;
+  // ellipse(circle.x, circle.y, 2*circle.rad, 2*circle.rad);
+  
+  var guidelineHeight = lineHeight + (3*circle.rad/4);
+  // var guideline2Height = lineHeight + (2*circle.rad);
+  line(0, guidelineHeight, 500, guidelineHeight);
+  // line(0, guideline2Height, 500, guideline2Height);
+  var A;
+  var B;
+
+  var topCircle = {x: circle.x, y: (circle.y - circle.rad)};
+  var bottomCircle = {x: circle.x, y: (circle.y + circle.rad)};
+  var rightCircle = {x: (circle.x + circle.rad), y: circle.y};
+  var leftCircle = {x: (circle.x - circle.rad), y: circle.y};
+  
+  var intersectPoints = circleLineIntersect(lineHeight, circle.x, circle.y, circle.rad);
+  
+  A = {x: intersectPoints[0], y: intersectPoints[1]}
+  B = {x: intersectPoints[2], y: intersectPoints[3]}
+
+  var angle = getAngle(circle.y, circle.rad, A.y);
+  
+  if (topCircle.y <= lineHeight){ //case 1, top of circle above/on line
+
+    arc(circle.x, circle.y, 2*circle.rad, 2*circle.rad, 2*PI+angle, PI-angle);
   }
+  
+  else {
 
-  for (var j = PI/2; j < 3*PI/2; j+=PI/14){
-    line(250,250,250+400*(-sin(j)),250+400*(-cos(j)));
+    arc(circle.x, circle.y, 2*circle.rad, 2*circle.rad, 2*PI+angle, PI-angle);
+
   }
+}
 
-  var amount = 500;
-  var frequency = 1/15;
-  var offset = random(200)+5;
-  var startY = height/2;
-    beginShape();
-      vertex(0, startY);
-       for (var c=1; c < amount; c++) {
-         var sinoffset = sin(frequency*c);
-         var sinX = c*(width/amount);
-         var sinY = startY + (sinoffset*offset);
-         bezierVertex(sinX,sinY,sinX,sinY-1,sinX,sinY);
-       }
-    endShape();
+function circleLineIntersect(h, cx, cy, cr) {
+  var x1 = sqrt((cr*cr)-((h-cy)*(h-cy))) + cx;
+  var x2 = -sqrt((cr*cr)-((h-cy)*(h-cy))) + cx;
+
+  return([x1,h,x2,h]);
+}
+
+function nearestPointOnCircle(x, y, cx, cy, r){
+  var vx = x - cx;
+  var vy = y - cy;
+  var magV = sqrt(vx*vx + vy*vy);
+  return [(cx + vx / magV * r), (cy + vy / magV * r)];
+}
+
+function lineIntersectAtHeight(h, x1, y1, x2, y2){
+  var m = (y1-y2)/(x1-x2);
+  var b = y1 - ((y1-y2)/(x1-x2))*x1;
+  var x = (h-b)/m;
+  return [x, h];
+}
+
+function distanceTwoPoints(x1, y1, x2, y2){
+  return sqrt( ((x1-x2)*(x1-x2)) + ((y1-y2)*(y1-y2)) );
+}
+
+function getAngle(cy, r, y){
+  return asin((y-cy)/r)
 }
